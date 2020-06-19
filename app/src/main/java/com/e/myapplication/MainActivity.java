@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //我是分支-1
+        //我是分支-1啊
 //        initNotification();
         String extend = "{\"request\":\"success\",\"age\":18,\"school\":\"清华大学\"}";
         try {
