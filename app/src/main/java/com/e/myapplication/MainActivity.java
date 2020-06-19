@@ -22,6 +22,7 @@ import java.util.Iterator;
 
 public class MainActivity extends AppCompatActivity {
 
+    //我是本地master
     NotificationManager notificationManager;
     Notification.Builder builder;
     Notification notification;
