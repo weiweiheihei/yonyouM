@@ -3,17 +3,25 @@ package com.e.myapplication;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 
+import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.RemoteViews;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONObject;
 import org.w3c.dom.Text;
@@ -25,78 +33,83 @@ public class MainActivity extends AppCompatActivity {
     NotificationManager notificationManager;
     Notification.Builder builder;
     Notification notification;
+    Button button;
+    private final static String[] permissions = new String[]{"sansec.permission.START_SIGN_ACTIVITY", "sansec.permission.GET_PUBLIC_KEY_ACTIVITY"};
+    private final static int PERMISSION_CODE = 1003;
+    //获取公钥
+    private final int GET_PUBLIC_KEY = 1001;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //我是分支-1啊
-//        initNotification();
-        String extend = "{\"request\":\"success\",\"age\":18,\"school\":\"清华大学\"}";
-        try {
-            JSONObject jsonObject = new JSONObject(extend);
-//            String value = jsonObject.optString("request");
-//            System.out.println(value);
-            Iterator<String> it = jsonObject.keys();//使用迭代器
-            jsonObject.length();
-            while (it.hasNext()) {
-                String key = it.next();//获取key
-                String value = jsonObject.getString(key);//获取value
-//                metadata.addUserMetadata("x-oss-meta-" + key, value);
-            System.out.println("key="+key+" value="+value);
+        button= findViewById(R.id.button);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+
+//                    JSONObject jo = args.optJSONObject(0);
+//                    signData = jo.getString("mansigninfo");
+//                    password = YYUDALoca.getAppLoca(context, Constant.SECRET);
+//                    userId = YYUDALoca.getAppLoca(context, Constant.LOGIN_NAME);
+
+                    Intent publicKeyIntent = new Intent("android.intent.action.GET_PUBLIC_KEY_ACTIVITY");
+                    publicKeyIntent.setClassName("sansec.cusmobileshield", "sansec.cusmobileshield.activity.GetPublicKeyActivity");
+                    if (getPackageManager().resolveActivity(publicKeyIntent, 0) != null) {
+                        //第一次登陆提示
+//                    if (isFirstDownload) {
+//                        String html = "<font color='#074791' size='18px'>" + "需安装并绑定E-Port手机盾APP，进行加签验证" + "</font>";
+//                        Toast.makeText(context, Html.fromHtml(html), Toast.LENGTH_LONG).show();
+//                        return true;
+//                    }
+
+                        if (!checkPermission(getApplicationContext(), permissions)) {
+                            requestPermission(MainActivity.this);
+                        }
+
+//                        if (!TextUtils.isEmpty(userId)) {
+//                            publicKeyIntent.putExtra("userId", userId);
+                            startActivityForResult( publicKeyIntent, GET_PUBLIC_KEY);
+//                        } else {
+//                            Toast.makeText(MainActivity.this, "请打开手机盾应用并申请密钥", Toast.LENGTH_SHORT).show();
+//                        }
+                    } else {
+
+                        //下载手机盾
+
+//                        if (confirmDialog == null)
+//                            initConfirmDialog(this);
+//                        confirmDialog.show();
+                    }
+                } catch (Exception e) {
+                    Log.e("e:",e.getMessage());
+                }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        });
 
-//        for (int i = 0; i < 100; i++) {
-//            try {
-//                Thread.sleep(200);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//            builder.setProgress(100, i, false);
-//            builder.setContentText("下载进度:" + i + "%");
-//            notification = builder.build();
-//            notificationManager.notify(1, notification);
-//
-//            builder.setProgress(100, i+20, false);
-//            builder.setContentText("下载进度:" + (i+20) + "%");
-//            notification = builder.build();
-//            notificationManager.notify(2, notification);
-//        }
-//        notificationManager.cancel(1);
-
-
-
-//        //初始化通知管理器
-//        NotificationManager notificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-////
-//        Notification.Builder builder = new Notification.Builder(this);
-////
-//        Intent mIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.jianshu.com/p/890acf8e5080"));
-//
-//        PendingIntent pendingIntent = PendingIntent.getActivity(this,0,mIntent,0);
-//
-//        builder.setContentIntent(pendingIntent);
-////
-//        builder.setSmallIcon(R.drawable.ic_launcher_background);
-//
-//
-//        mIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//        RemoteViews remoteViews = new RemoteViews(getPackageName(),R.layout.item_notification);
-//
-//        Notification notification1 = builder.build();
-//
-//        notification1.bigContentView= remoteViews;
-//        for (int i = 0; i < 100; i++) {
-//            remoteViews.setProgressBar(R.id.progressbar,100,i,false);
-//        }
-//        notificationManager.notify(1, notification1);
 
 
     }
+    public static boolean checkPermission(Context context, String[] permissions) {
+        PackageManager pm = context.getPackageManager();
+        boolean result;
+        for (String permission : permissions) {
+            result = PackageManager.PERMISSION_GRANTED == pm.checkPermission(permission, context.getPackageName());
+            if (!result) {
+                return false;
+            }
+        }
+        return true;
 
+    }
+
+    public static void requestPermission(Activity activity) {
+        if (Build.VERSION.SDK_INT >= 23)
+            activity.requestPermissions(permissions, PERMISSION_CODE);
+
+    }
     private void initNotification() {
         notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
         builder = new Notification.Builder(this);
